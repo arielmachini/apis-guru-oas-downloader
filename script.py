@@ -15,7 +15,7 @@ def getApiTitle(api: json):
     return api['versions'][api['preferred']]['info']['title']
 
 def getApiUrl(api: json):
-    return api['versions'][api['preferred']]['link']
+    return api['versions'][api['preferred']]['swaggerUrl']
 
 # Delete previously downloaded specifications:
 for f in glob.glob('download/*.json'):
