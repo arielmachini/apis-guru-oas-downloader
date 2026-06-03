@@ -10,6 +10,7 @@ apisDirectoryFilename = 'APIs.guru.json' # Downloaded from https://api.apis.guru
 
 collectionOfApis = []
 numberOfApis = 100 # Number of OpenAPI specs to get from the directory.
+savedSpecUrls = set()
 
 def getApiTitle(api: json):
     return api['versions'][api['preferred']]['info']['title']
@@ -17,7 +18,7 @@ def getApiTitle(api: json):
 def getApiUrl(api: json):
     return api['versions'][api['preferred']]['swaggerUrl']
 
-# Delete previously downloaded specifications:
+# Delete previously downloaded OpenAPI specs:
 for f in glob.glob('download/*.json'):
     os.remove(f)
 
@@ -33,29 +34,35 @@ for _ in range(numberOfApis):
         apiTitle = getApiTitle(selectedApi)
         specUrl = getApiUrl(selectedApi)
 
-        if (apiTitle, specUrl) in collectionOfApis or 'webhooks' in json.dumps(selectedApi):
-            continue # Select another API from the directory.
+        if specUrl in savedSpecUrls or 'webhooks' in json.dumps(selectedApi):
+            continue # The API is already in the collection or contains webhooks.
         else:
-            collectionOfApis.append((apiTitle, specUrl))
+            time.sleep(1)
 
-            break
+            r = requests.get(specUrl, timeout = 60)
+
+            if r.status_code == 200:
+                if len(r.content) <= 100 * 1024:
+                    collectionOfApis.append((apiTitle, specUrl, r.text))
+                    savedSpecUrls.add(specUrl)
+
+                    break
+
+                continue # The spec file size is greater than 100 KB.
+            else:
+                print(f'Failed to download OpenAPI spec from "{specUrl}" (status code: {r.status_code}).')
+
+                continue # GET request failed.
 
 with open('download/urls.csv', 'w') as f:
-    w = csv.writer(f, quoting = csv.QUOTE_ALL)
-    w.writerow(['Title', 'URL'])
+    f = csv.writer(f, quoting = csv.QUOTE_ALL)
+    f.writerow(['Title', 'URL'])
 
-    for apiTitle, specUrl in collectionOfApis:
-        w.writerow([apiTitle, specUrl])
+    for apiTitle, specUrl, oas in collectionOfApis:
+        f.writerow([apiTitle, specUrl])
 
-        # Save the OpenAPI specification to disk:
-        r = requests.get(specUrl, timeout = 60)
+        # Save the OpenAPI spec to disk:
+        specFilename = ''.join([c for c in apiTitle if c.isalnum()])
 
-        if r.status_code == 200:
-            specFilename = ''.join([c for c in apiTitle if c.isalnum()])
-
-            with open('download/' + specFilename + '.json', 'w') as f:
-                f.write(r.text)
-        else:
-            print(f'Failed to download OpenAPI specification from "{specUrl}" (status code: {r.status_code}).')
-
-        time.sleep(1)
+        with open('download/' + specFilename + '.json', 'w') as specFile:
+            specFile.write(oas)
