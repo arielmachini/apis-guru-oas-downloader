@@ -1,3 +1,4 @@
+from datetime import datetime
 import csv
 import glob
 import json
@@ -65,7 +66,11 @@ with open('download/urls.csv', 'w') as f:
         # Save the OpenAPI spec to disk:
         specFilename = ''.join([c for c in apiTitle if c.isalnum()])
 
-        with open('download/' + specFilename + '.json', 'w') as specFile:
+        # Timestamp to be included in the filename:
+        ts = datetime.now()
+        ts = str(ts.date()) + '_' + str(ts.hour) + '-' + str(ts.minute) + '-' + str(ts.second) + '-' + str(ts.microsecond)
+
+        with open('download/' + specFilename + '_' + ts + '.json', 'w') as specFile:
             specFile.write(oas)
 
 print('\n*** All tasks finished.')
