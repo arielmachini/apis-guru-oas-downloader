@@ -27,7 +27,7 @@ with open(apisDirectoryFilename) as f:
         json.load(f).values()
     )
 
-for _ in range(numberOfApis):
+for i in range(numberOfApis):
     while True:
         selectedApi = random.choice(listOfApis)
 
@@ -38,7 +38,7 @@ for _ in range(numberOfApis):
             continue # The API is already in the collection or contains webhooks.
         else:
             time.sleep(1)
-            print(f'* Downloading OAS for "{apiTitle}"...')
+            print(f'* Downloading OAS for "{apiTitle}" ({i + 1}/{numberOfApis})...')
 
             r = requests.get(specUrl, timeout = 60)
 
