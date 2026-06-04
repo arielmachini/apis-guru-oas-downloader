@@ -38,6 +38,7 @@ for _ in range(numberOfApis):
             continue # The API is already in the collection or contains webhooks.
         else:
             time.sleep(1)
+            print(f'* Downloading OAS for "{apiTitle}"...')
 
             r = requests.get(specUrl, timeout = 60)
 
@@ -66,3 +67,5 @@ with open('download/urls.csv', 'w') as f:
 
         with open('download/' + specFilename + '.json', 'w') as specFile:
             specFile.write(oas)
+
+print('\n*** All tasks finished.')
