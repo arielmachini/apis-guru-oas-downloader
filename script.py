@@ -44,13 +44,13 @@ for i in range(numberOfApis):
             r = requests.get(specUrl, timeout = 60)
 
             if r.status_code == 200:
-                if len(r.content) <= 100 * 1024:
+                if len(r.content) <= 200 * 1024:
                     collectionOfApis.append((apiTitle, specUrl, r.text))
                     savedSpecUrls.add(specUrl)
 
                     break
 
-                continue # The spec file size is greater than 100 KB.
+                continue # The spec file size is greater than 200 KB.
             else:
                 print(f'Failed to download OpenAPI spec from "{specUrl}" (status code: {r.status_code}).')
 
